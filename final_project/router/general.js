@@ -1,8 +1,27 @@
 const express = require('express');
+const axios = require('axios');
 let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
+
+
+async function getBooks() {
+  return new Promise((resolve, reject) => {
+    resolve(books);
+  });
+}
+
+function getBookDetails(isbn) {
+  return new Promise((resolve, reject) => {
+    const book = books[isbn];
+    if (book) {
+      resolve(book);
+    } else {
+      reject('Book not found');
+    }
+  });
+}
 
 
 public_users.post("/register", (req,res) => {
@@ -22,20 +41,18 @@ public_users.post("/register", (req,res) => {
 
 // Get the book list available in the shop
 public_users.get('/',function (req, res) {
-
-  return res.send(JSON.stringify(books, null, 4));
+  getBooks().then((books) => {
+    return res.send(JSON.stringify(books, null, 4));
+  })
 });
 
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
-  const book = books[req.params.isbn];
-
-  // Step 3: If the book is found, send it as a response
-  if (book) {
+public_users.get('/isbn/:isbn', function (req, res) {
+  getBookDetails(req.params.isbn).then((book) => {
     return res.send(book);
-  }
-
-  return res.status(404).send('Book not found');
+  }).catch((error) => {
+    return res.status(404).send(error);
+  });
 });
 
 // Get book details based on author
