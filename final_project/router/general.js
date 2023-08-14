@@ -23,6 +23,32 @@ function getBookDetails(isbn) {
   });
 }
 
+function getBooksByAuthor(author) {
+  return new Promise((resolve, reject) => {
+    const keys = Object.keys(books);
+    const booksByAuthor = keys.filter(key => books[key].author === author).map(key => books[key]);
+
+    if (booksByAuthor.length > 0) {
+      resolve(booksByAuthor);
+    } else {
+      reject('No books found by this author');
+    }
+  });
+}
+
+function getBooksByTitle(title) {
+  return new Promise((resolve, reject) => {
+    const keys = Object.keys(books);
+    const booksByTitle = keys.filter(key => books[key].title === title).map(key => books[key]);
+
+    if (booksByTitle.length > 0) {
+      resolve(booksByTitle);
+    } else {
+      reject('No books found with this title');
+    }
+  });
+}
+
 
 public_users.post("/register", (req,res) => {
   const username = req.body.username;
@@ -56,38 +82,21 @@ public_users.get('/isbn/:isbn', function (req, res) {
 });
 
 // Get book details based on author
-public_users.get('/author/:author',function (req, res) {
-  //Write your code here
-  const author = req.params.author;
-  const keys = Object.keys(books);
-  const booksByAuthor = keys
-      .filter(
-          key => books[key].author === author
-      ).map(key => books[key]);
-
-  if (booksByAuthor.length > 0) {
-    return res.send(booksByAuthor);
-  }
-
-  return res.status(404).send('No books found by this author');
+public_users.get('/author/:author', function (req, res) {
+  getBooksByAuthor(req.params.author).then((books) => {
+    return res.send(books);
+  }).catch((error) => {
+    return res.status(404).send(error);
+  });
 });
 
 // Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-  //Write your code here
-//Write your code here
-  const title = req.params.title;
-  const keys = Object.keys(books);
-  const booksByAuthor = keys
-      .filter(
-          key => books[key].title === title
-      ).map(key => books[key]);
-
-  if (booksByAuthor.length > 0) {
-    return res.send(booksByAuthor);
-  }
-
-  return res.status(404).send('No books found by this title');
+public_users.get('/title/:title', function (req, res) {
+  getBooksByTitle(req.params.title).then((books) => {
+    return res.send(books);
+  }).catch((error) => {
+    return res.status(404).send(error);
+  });
 });
 
 //  Get book review
